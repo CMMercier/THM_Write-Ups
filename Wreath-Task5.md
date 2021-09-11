@@ -1,15 +1,19 @@
-#Information
+# Information
+
 Name: Wreath
+
 Profile: tryhackme.com
+
 Difficulty: Easy
+
 Description: Learn how to pivot through a network by compromising a public facing web machine and tunnelling your traffic to access other machines in Wreath's network.
 
-#Write-up
+# Write-up
 
-##Webserver Enumeration
+## Webserver Enumeration
 We always start with an nmap scan since it may take awhile to complete.
 
-'''
+```
 ┌──(root💀kali)-[~/ctfs/thm]
 └─# export IP=10.200.188.200     
 ──(root💀kali)-[~/ctfs/thm]
@@ -44,16 +48,19 @@ PORT      STATE  SERVICE          REASON
 Read data files from: /usr/bin/../share/nmap
 Nmap done: 1 IP address (1 host up) scanned in 127.36 seconds
            Raw packets sent: 44879 (1.975MB) | Rcvd: 140 (9.832KB)
-'''
+```
 
 **How many of the first 15000 ports are open on the target?**
+
 4
+
 We can see that there are 4 open ports and 1 closed port.
 
 **What OS does Nmap think is running?**
+
 centos
 
-'''
+```
 ┌──(root💀kali)-[~/ctfs/thm]
 └─# nmap -p 22,80,443,10000 -sV -oA ~/ctfs/thm/wreath $IP 
 Starting Nmap 7.91 ( https://nmap.org ) at 2021-09-11 12:28 EDT
@@ -68,14 +75,15 @@ PORT      STATE SERVICE  VERSION
 
 Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
 Nmap done: 1 IP address (1 host up) scanned in 45.11 seconds
-'''
+```
 
 Running the nmap scan again to check services with the ports we found reveals that nmap believes this to be a centos OS.
 
 **Open the IP in your browser -- what site does the server try to redirect you to?**
+
 https://thomaswreath.thm/
 
-'''
+```
 ──(root💀kali)-[~/ctfs/thm]
 └─# curl http://10.200.188.200                                                     
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
@@ -85,9 +93,10 @@ https://thomaswreath.thm/
 <h1>Found</h1>
 <p>The document has moved <a href="https://thomaswreath.thm">here</a>.</p>
 </body></html>
-'''
+```
 
 We must add this line to the /etc/hosts file to access the page:
+
 10.200.188.200  thomaswreath.thm
 
 **Read through the text on the page. What is Thomas' mobile phone number?**
