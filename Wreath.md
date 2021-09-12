@@ -6,6 +6,7 @@ Difficulty: Easy
 
 Description: Learn how to pivot through a network by compromising a public facing web machine and tunnelling your traffic to access other machines in Wreath's network.
 
+Note: Not all tasks have questions that require answers and so those tasks are not listed here.
 
 ## Task 5 - Webserver Enumeration
 We always start with an nmap scan since it may take awhile to complete.
