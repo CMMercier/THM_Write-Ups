@@ -98,3 +98,23 @@ We must add this line to the /etc/hosts file to access the page:
 10.200.188.200  thomaswreath.thm
 
 **Read through the text on the page. What is Thomas' mobile phone number?**
+
+447821548812
+
+Found simply by scrolling to the bottom of the page.
+
+![image](https://user-images.githubusercontent.com/43668197/132990849-e753d568-84d2-48a6-91a8-d869d5c3d06c.png)
+
+**Look back at your service scan results: what server version does Nmap detect as running here?**
+
+MiniServ 1.890 (Webmin httpd)
+
+```
+10000/tcp open  http     MiniServ 1.890 (Webmin httpd)
+```
+
+**What is the CVE number for this exploit?**
+
+CVE-2019-15107
+
+https://www.exploit-db.com/exploits/47230
