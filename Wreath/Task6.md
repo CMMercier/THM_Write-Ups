@@ -6,8 +6,6 @@ Difficulty: Easy
 
 Description: Learn how to pivot through a network by compromising a public facing web machine and tunnelling your traffic to access other machines in Wreath's network.
 
-# Write-up
-
 ## Webserver Exploitation
 
 **Which user was the server running as?**
