@@ -153,6 +153,8 @@ which means we can execute this binary with the effective user-id of the root us
 
 thm{h0r1zont4l_pr1v1l3g3_2sc4ll4t10n_us1ng_cr0n}
 
+## Priv esc to root
+
 Taking a look at the strings for the file backup revels an interesting cp command. We can priv esc this using PATH variable
 https://www.hackingarticles.in/linux-privilege-escalation-using-path-variable/
 
