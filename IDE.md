@@ -93,7 +93,12 @@ The location of the service is `/lib/systemd/system/vsftpd.service`. Make sure i
 
 ![image](https://user-images.githubusercontent.com/43668197/149432246-c5345192-f4a0-461a-91eb-1e3b82e8ec62.png)
 
-Good it does! 
+Good it does! Edit the file in your favorite editor and change ExecStart to a shell.
 
+![image](https://user-images.githubusercontent.com/43668197/149537179-b909d277-dc75-4d12-9a95-0c56cb501cc1.png)
 
+Run `systemctl daemon-restart` then `sudo /usr/sbin/service vsftpd restart` and you should have your root shell.
 
+![image](https://user-images.githubusercontent.com/43668197/149537596-34e2d9a1-10c6-4cfb-a8a7-253913944e3f.png)
+
+Go cat the `root.txt` file from the `root` directory and room cleared!
